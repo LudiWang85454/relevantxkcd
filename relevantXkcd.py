@@ -1,10 +1,11 @@
+import asyncio
 import random
 import re
 import webbrowser
 
 from googlesearch import search
 
-from newestXkcd import latest_comic_num
+from newest_xkcd import latest_comic_num
 
 url = "https://xkcd.com/"
 searchType = input("Do you want to search by NUMBER, PHRASE, or RANDOM?").lower()
@@ -13,7 +14,7 @@ if searchType == "number":
     comicNumber = input("What is the number of the comic you want to search?")
     try:
         requested = int(comicNumber)
-        latest = latest_comic_num()
+        latest = asyncio.run(latest_comic_num())
         if latest is None:
             print("Having trouble connecting to xkcd.com")
         elif latest < requested:
@@ -41,7 +42,7 @@ elif searchType == "phrase":
         print("An error occured. Perhaps you didn't enter an integer for the number of searches, or you don't have google, or maybe its all my fault and I really am a disappointment like my parents said.")
         webbrowser.open_new("https://xkcd.com/2200/")
 elif searchType == "random":
-    newest_comic = latest_comic_num()
+    newest_comic = asyncio.run(latest_comic_num())
     comic_num = random.randint(1, newest_comic)
     random_url = (f"{url}{comic_num}")
     webbrowser.open_new(random_url)
