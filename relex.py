@@ -49,8 +49,7 @@ async def random_comic(ctx):
 async def search_phrase(ctx, phrase):
     await ctx.send(f'Now searching for the xkcd most relevant to the phrase \"{phrase}\".')
     loop = asyncio.get_running_loop()
-    with concurrent.futures.ThreadPoolExecutor() as pool:
-        result = await loop.run_in_executor(pool, search, phrase)
+    result = await loop.run_in_executor(None, search, phrase)
     await ctx.send(result)
 
 
