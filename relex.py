@@ -1,13 +1,15 @@
+import asyncio
+import concurrent.futures
+import functools
 import os
 import random
-import re
 
 import aiohttp
 from discord.ext import commands
 from dotenv import load_dotenv
-import googlesearch
 
 from newest_xkcd import latest_comic_num
+from search import search
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -15,12 +17,14 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 URL = 'https://xkcd.com/'
 
 bot = commands.Bot(command_prefix='!')
-bot.SESSION = aiohttp.ClientSession()
 
 
 @bot.event
 async def on_connect():
-    if bot.SESSION.closed:
+    try:
+        if bot.SESSION.closed:
+            bot.SESSION = aiohttp.ClientSession()
+    except AttributeError:
         bot.SESSION = aiohttp.ClientSession()
 
 
@@ -43,28 +47,11 @@ async def random_comic(ctx):
 
 @bot.command(name='search_phrase', pass_context=True, aliases=['search'])
 async def search_phrase(ctx, phrase):
-    query = f'site:xkcd.com {str(phrase)}'
-    pattern = r'^https?://xkcd.com/\d+/$'
-    found = False
-    link = ''
-    first = -1
-    last = 0
-    links = 0
     await ctx.send(f'Now searching for the xkcd most relevant to the phrase \"{phrase}\".')
-    while not found:
-        first += 1
-        last += 1
-        if links >= 10:
-            await ctx.send(
-                'I searched through 10 links and didn\'t find a match. Maybe there\'s not always a relevant xkcd.')
-            return
-        result = googlesearch.search(query, num=10, start=first, stop=last, pause=2.0)
-        for page in result:
-            links += 1
-            if re.match(pattern, page):
-                link = page
-                found = True
-    await ctx.send(f'The most relevant xkcd found for the phrase \"{phrase}\" is: {link}')
+    loop = asyncio.get_running_loop()
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        result = await loop.run_in_executor(pool, search, phrase)
+    await ctx.send(result)
 
 
 @bot.command(name='newest', pass_context=True)
