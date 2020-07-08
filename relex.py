@@ -3,6 +3,7 @@ import os
 import random
 
 import aiohttp
+from discord import Game
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -16,10 +17,11 @@ URL = 'https://xkcd.com/'
 
 bot = commands.Bot(command_prefix='!')
 
-
 @bot.event
 async def on_connect():
     print(f'Bot connected as {bot.user}')
+    # Setting `Playing ` status
+    await bot.change_presence(activity=Game(name='Grand Theft Auto: Emily Dickinson Edition'))
     try:
         if bot.SESSION.closed:
             bot.SESSION = aiohttp.ClientSession()
