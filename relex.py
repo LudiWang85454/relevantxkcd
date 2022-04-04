@@ -3,7 +3,7 @@ import os
 import random
 
 import aiohttp
-from discord import Game
+from discord import Game, Intents
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -15,7 +15,9 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 URL = 'https://xkcd.com/'
 
-bot = commands.Bot(command_prefix='!')
+intents = Intents(messages=True)
+
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_connect():
@@ -36,14 +38,14 @@ async def on_disconnect():
 
 @bot.command(name='number', pass_context=True, description='Get comic by number',aliases=['n'])
 async def number(ctx, num: int):
-    await ctx.send(ctx.message.author.mention + f' {URL}{num}/')
+    await ctx.send(ctx.message.author.mention + f'{URL}{num}/')
 
 
 @number.error
 async def number_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         message_contents = ctx.message.content.split()
-        await ctx.send(ctx.message.author.mention + f' Error: could not parse "{"".join(message_contents[1:])}"')
+        await ctx.send(ctx.message.author.mention + f'Error: could not parse "{"".join(message_contents[1:])}"')
 
 
 @bot.command(name='random_comic', pass_context=True, description='Get random comic', aliases=['random', 'rand', 'r'])
@@ -63,7 +65,6 @@ async def search_phrase(ctx):
     else:
         ctx.send(ctx.message.author.mention + ' Error: no phrase provided')
         return
-    await ctx.send(ctx.message.author.mention + f' searching for the xkcd most relevant to the phrase \"{phrase}\".')
     loop = asyncio.get_running_loop()
     # `googlesearch` does not support async, so use executor to avoid blocking everything
     result = await loop.run_in_executor(None, search, phrase)
