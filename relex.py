@@ -38,14 +38,19 @@ async def on_disconnect():
 
 @bot.command(name='number', pass_context=True, description='Get comic by number',aliases=['n'])
 async def number(ctx, num: int):
-    await ctx.send(ctx.message.author.mention + f'{URL}{num}/')
+    if num < 1:
+        await ctx.send(ctx.message.author.mention + ' Error: The earliest comic is #1. (Sadly, xkcds do not start at index 0)')
+    elif num > (newest_comic := await latest_comic_num(bot.SESSION)):
+        await ctx.send(ctx.message.author.mention + f' Error: The most recent comic is #{newest_comic}. Hopefully we will see #{num} someday!')
+    else:
+        await ctx.send(ctx.message.author.mention + f' {URL}{num}/')
 
 
 @number.error
 async def number_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         message_contents = ctx.message.content.split()
-        await ctx.send(ctx.message.author.mention + f'Error: could not parse "{"".join(message_contents[1:])}"')
+        await ctx.send(ctx.message.author.mention + f' Error: could not parse "{"".join(message_contents[1:])}"')
 
 
 @bot.command(name='random_comic', pass_context=True, description='Get random comic', aliases=['random', 'rand', 'r'])
@@ -55,7 +60,7 @@ async def random_comic(ctx):
     await ctx.send(ctx.message.author.mention + f' {URL}{comic_num}/')
 
 
-@bot.command(name='search_phrase', pass_context=True, discription='Search by a word/phrase',
+@bot.command(name='search_phrase', pass_context=True, description='Search by a word/phrase',
              aliases=['search', 's', 'find', 'f'])
 async def search_phrase(ctx):
     split_phrase = ctx.message.content.split()
